@@ -1,0 +1,190 @@
+---
+services:
+  npm: # Nginx Proxy Manager - https://nginxproxymanager.com/
+    container_name: npm
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ${EZARR_ROOT_DIR}/data/npm:/data
+      - ${EZARR_ROOT_DIR}/config/npm:/etc/letsencrypt
+
+        #  readarr:
+        #    image: readarr:latest
+        #    container_name: readarr
+        #    environment:
+        #      - PUID=13001
+        #      - PGID=13000
+        #      - UMASK=002
+        #      - TZ=${TIMEZONE}
+        #    volumes:
+        #      - ${EZARR_ROOT_DIR}/config/readarr-config:/config
+        #      - ${EZARR_ROOT_DIR}/data:/data
+        #    ports:
+        #      - "8787:8787"
+        #    restart: unless-stopped
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=13001
+      - PGID=13000
+      - UMASK=002
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${EZARR_ROOT_DIR}/config/sonarr-config:/config
+      - ${EZARR_ROOT_DIR}/data:/data
+    ports:
+      - "8989:8989"
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=13002
+      - PGID=13000
+      - UMASK=002
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${EZARR_ROOT_DIR}/config/radarr-config:/config
+      - ${EZARR_ROOT_DIR}/data:/data
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+
+  audiobookshelf:
+    image: ghcr.io/advplyr/audiobookshelf:latest
+    container_name: audiobookshelf
+    environment:
+      - user=13014:13000
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${EZARR_ROOT_DIR}/config/audiobookshelf:/config
+      - ${EZARR_ROOT_DIR}/data/media/audiobooks:/audiobooks
+      - ${EZARR_ROOT_DIR}/data/media/podcasts:/podcasts
+      - ${EZARR_ROOT_DIR}/data/media/audiobookshelf-metadata:/metadata
+    ports:
+      - "13378:80"
+    restart: unless-stopped
+
+  homarr:
+    image: ghcr.io/homarr-labs/homarr:latest
+    container_name: homarr
+    environment:
+      - SECRET_ENCRYPTION_KEY=d3994946f0371c3a043b7e35fde11ab9606f59cd4dc2c7746c5262884e60f1b0
+    volumes:
+      - ${EZARR_ROOT_DIR}/data/homarr/appdata:/appdata
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "7575:7575"
+    restart: unless-stopped
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    environment:
+      - PUID=13013
+      - PGID=13000
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${EZARR_ROOT_DIR}/config/bazarr-config:/config
+      - ${EZARR_ROOT_DIR}/data/media:/media
+    ports:
+      - "6767:6767"
+    restart: unless-stopped
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - PUID=13012
+      - PGID=13000
+      - UMASK=002
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${EZARR_ROOT_DIR}/config/jellyseerr-config:/app/config
+    ports:
+      - "5056:5055"
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:develop
+    container_name: prowlarr
+    environment:
+      - PUID=13006
+      - PGID=13000
+      - UMASK=002
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${EZARR_ROOT_DIR}/config/prowlarr-config:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=${TIMEZONE}
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=1000
+      - PGID=13000
+      - UMASK=002
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${EZARR_ROOT_DIR}/config/jellyfin-config:/config
+      - ${EZARR_ROOT_DIR}/data/media:/data
+    ports:
+      - "8096:8096"
+    restart: unless-stopped
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=13007
+      - PGID=13000
+      - UMASK=002
+      - TZ=${TIMEZONE}
+      - WEBUI_PORT=8080
+    volumes:
+      - ${EZARR_ROOT_DIR}/config/qbittorrent-config:/config
+      - ${EZARR_ROOT_DIR}/data/torrents:/data/torrents
+    ports:
+      - "8080:8080"
+      - "6881:6881"
+      - "6881:6881/udp"
+    restart: unless-stopped
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    environment:
+      - PUID=13011
+      - PGID=13000
+      - UMASK=002
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${EZARR_ROOT_DIR}/config/sabnzbd-config:/config
+      - ${EZARR_ROOT_DIR}/data/usenet:/data/usenet
+    ports:
+      - "8081:8080"
+    restart: unless-stopped
+
