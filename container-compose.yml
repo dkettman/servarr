@@ -8,7 +8,7 @@ services:
       - TZ=${TIMEZONE}
     ports:
       - '80:80'
-      - '81:81'
+      - '81:81' # DO NOT EXPOSE TO INTERNET
       - '443:443'
     volumes:
       - ${EZARR_ROOT_DIR}/data/npm:/data
@@ -22,6 +22,9 @@ services:
       - PGID=13000
       - UMASK=002
       - TZ=${TIMEZONE}
+      # - POSTGRES_PASSWORD=${SONARR__POSTGRES_PASSWORD}
+      # - POSTGRES_USER=${SONARR__POSTGRES_USER}
+      # - POSTGRES_DB=${SONARR__POSTGRES_DB}
     volumes:
       - ${EZARR_ROOT_DIR}/config/sonarr-config:/config
       - ${EZARR_ROOT_DIR}/data:/data
@@ -63,19 +66,19 @@ services:
     image: ghcr.io/homarr-labs/homarr:latest
     container_name: homarr
     environment:
-      - BASE_URL=https://${HOMARR__FQDN}
-      - NEXTAUTH_URL=https://${HOMARR__FQDN}
-      - AUTH_PROVIDERS=oidc,credentials #(optional: include ',credentials' to keep local accounts as fallback)
-      - AUTH_OIDC_CLIENT_ID=${HOMARR__OIDC_CLIENT_ID}
-      - AUTH_OIDC_CLIENT_SECRET=${HOMARR__OIDC_CLIENT_SECRET}
-      - AUTH_OIDC_ISSUER=https://${HOMARR__AUTH_DOMAIN}:9443/application/o/${HOMARR__OIDC_SLUG}/
-      - AUTH_OIDC_URI=https://${HOMARR__AUTH_DOMAIN}:9443/application/o/authorize
-      - AUTH_OIDC_CLIENT_NAME=authentik
-      - AUTH_OIDC_SCOPE_OVERWRITE=openid email profile groups
-      - AUTH_OIDC_GROUPS_ATTRIBUTE=groups
-      - AUTH_LOGOUT_REDIRECT_URL=https://${HOMARR__AUTH_DOMAIN}:9443/application/o/${HOMARR__OIDC_SLUG}/end-session/
-      - AUTH_OIDC_AUTO_LOGIN=true #To sign in with Authentik automatically
       - SECRET_ENCRYPTION_KEY=d3994946f0371c3a043b7e35fde11ab9606f59cd4dc2c7746c5262884e60f1b0
+      - AUTH_PROVIDERS=${HOMARR__AUTH_PROVIDERS:-credentials}
+      - AUTH_OIDC_ISSUER=${HOMARR__AUTH_OIDC_ISSUER:-}
+      - AUTH_OIDC_CLIENT_ID=${HOMARR__AUTH_OIDC_CLIENT_ID:-}
+      - AUTH_OIDC_CLIENT_SECRET=${HOMARR__AUTH_OIDC_CLIENT_SECRET:-}
+      - AUTH_OIDC_CLIENT_NAME=${HOMARR__AUTH_OIDC_CLIENT_NAME:-OIDC}
+        #      - AUTH_OIDC_AUTO_LOGIN=${HOMARR__AUTH_OIDC_AUTO_LOGIN:-false}
+        #      - AUTH_OIDC_SCOPE_OVERWRITE=${HOMARR__AUTH_OIDC_SCOPE_OVERWRITE:-openid,email,profile,groups}
+        #      - AUTH_OIDC_GROUPS_ATTRIBUTE=${HOMARR__AUTH_OIDC_GROUPS_ATTRIBUTE:-groups}
+        #      - AUTH_OIDC_NAME_ATTRIBUTE_OVERWRITE=${HOMARR__AUTH_OIDC_NAME_ATTRIBUTE_OVERWRITE:-}
+        #      - AUTH_OIDC_FORCE_USERINFO=${HOMARR__AUTH_OIDC_FORCE_USERINFO:-false}
+        #      - AUTH_OIDC_ENABLE_DANGEROUS_ACCOUNT_LINKING=${HOMARR__AUTH_OIDC_ENABLE_DANGEROUS_ACCOUNT_LINKING:-false}
+        #      - AUTH_OIDC_NAME_CLAIM=email
     volumes:
       - ${EZARR_ROOT_DIR}/data/homarr/appdata:/appdata
       - /var/run/docker.sock:/var/run/docker.sock
@@ -152,23 +155,23 @@ services:
       - "8096:8096"
     restart: unless-stopped
 
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-    container_name: qbittorrent
-    environment:
-      - PUID=13007
-      - PGID=13000
-      - UMASK=002
-      - TZ=${TIMEZONE}
-      - WEBUI_PORT=8080
-    volumes:
-      - ${EZARR_ROOT_DIR}/config/qbittorrent-config:/config
-      - ${EZARR_ROOT_DIR}/data/torrents:/data/torrents
-    ports:
-      - "8080:8080"
-      - "6881:6881"
-      - "6881:6881/udp"
-    restart: unless-stopped
+  # qbittorrent:
+  #   image: lscr.io/linuxserver/qbittorrent:latest
+  #   container_name: qbittorrent
+  #   environment:
+  #     - PUID=13007
+  #     - PGID=13000
+  #     - UMASK=002
+  #     - TZ=${TIMEZONE}
+  #     - WEBUI_PORT=8080
+  #   volumes:
+  #     - ${EZARR_ROOT_DIR}/config/qbittorrent-config:/config
+  #     - ${EZARR_ROOT_DIR}/data/torrents:/data/torrents
+  #   ports:
+  #     - "8080:8080"
+  #     - "6881:6881"
+  #     - "6881:6881/udp"
+  #   restart: unless-stopped
 
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:latest
@@ -200,3 +203,84 @@ services:
     ports:
       - 8888:80
     restart: unless-stopped
+
+  postgresql:
+    container_name: postgresql
+    env_file:
+    - .env
+    environment:
+      POSTGRES_DB: ${AUTHENTIK__PG_DB:-authentik}
+      POSTGRES_PASSWORD: ${AUTHENTIK__PG_PASS:?database password required}
+      POSTGRES_USER: ${AUTHENTIK__PG_USER:-authentik}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      timeout: 5s
+    image: docker.io/library/postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+    - ${EZARR_ROOT_DIR}/data/authentik-data/database:/var/lib/postgresql/data
+
+  server:
+    container_name: authentik_server
+    command: server
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    env_file:
+    - .env
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK__PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK__PG_PASS}
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK__PG_USER:-authentik}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK__SECRET_KEY:?secret key required}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.10.2}
+    ports:
+      #    - ${AUTHENTIK__COMPOSE_PORT_HTTP:-9000}:9000
+    - ${AUTHENTIK__COMPOSE_PORT_HTTPS:-9443}:9443
+    restart: unless-stopped
+    volumes:
+    - ${EZARR_ROOT_DIR}/data/authentik-data/media:/media
+    - ${EZARR_ROOT_DIR}/data/authentik-data/custom-templates:/templates
+    logging:
+      driver: "gelf"
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "first-logs"
+    networks:
+      - graylog_graylog
+      - ezarr_default
+
+  worker:
+    container_name: authentik_worker
+    command: worker
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    env_file:
+    - .env
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK__PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK__PG_PASS}
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK__PG_USER:-authentik}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK__SECRET_KEY:?secret key required}
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2025.10.2}
+    restart: unless-stopped
+    user: root
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ${EZARR_ROOT_DIR}/data/authentik-data/media:/media
+    - ${EZARR_ROOT_DIR}/data/authentik-data/custom-templates:/templates
+    - ${EZARR_ROOT_DIR}/data/authentik-data/certs:/certs
+
+networks:
+  graylog_graylog:
+    external: true
+  ezarr_default:
+    external: true
