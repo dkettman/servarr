@@ -60,7 +60,7 @@ volumes:
     driver_opts:
       type: nfs
       o: addr=192.168.68.60,rw,nolock,soft
-      device: :/media01
+      device: :/media01/data
       
   sabnzbd-config:
   jellyfin-config:
