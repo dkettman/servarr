@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose -f container-compose.yml convert -n servarr
+    kompose.version: 1.37.0 (fb0539e64)
+  labels:
+    io.kompose.service: bazarr
+  name: bazarr
+  namespace: servarr
+spec:
+  ports:
+    - name: "6767"
+      port: 6767
+      targetPort: 6767
+  selector:
+    io.kompose.service: bazarr

@@ -16,7 +16,7 @@ services:
       - ${EZARR_ROOT_DIR}/data:/data
     ports:
       - "8989:8989"
-    restart: unless-stopped
+    restart: always
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -31,7 +31,7 @@ services:
       - ${EZARR_ROOT_DIR}/data:/data
     ports:
       - "7878:7878"
-    restart: unless-stopped
+    restart: always
 
   audiobookshelf:
     image: ghcr.io/advplyr/audiobookshelf:latest
@@ -46,7 +46,7 @@ services:
       - ${EZARR_ROOT_DIR}/data/media/audiobookshelf-metadata:/metadata
     ports:
       - "13378:80"
-    restart: unless-stopped
+    restart: always
 
   homarr:
     image: ghcr.io/homarr-labs/homarr:latest
@@ -70,7 +70,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "7575:7575"
-    restart: unless-stopped
+    restart: always
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
@@ -84,7 +84,7 @@ services:
       - ${EZARR_ROOT_DIR}/data/media:/media
     ports:
       - "6767:6767"
-    restart: unless-stopped
+    restart: always
 
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
@@ -98,7 +98,7 @@ services:
       - ${EZARR_ROOT_DIR}/config/jellyseerr-config:/app/config
     ports:
       - "5056:5055"
-    restart: unless-stopped
+    restart: always
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
@@ -112,7 +112,7 @@ services:
       - ${EZARR_ROOT_DIR}/config/prowlarr-config:/config
     ports:
       - "9696:9696"
-    restart: unless-stopped
+    restart: always
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -124,7 +124,7 @@ services:
       - TZ=${TIMEZONE}
     ports:
       - "8191:8191"
-    restart: unless-stopped
+    restart: always
 
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
@@ -139,7 +139,7 @@ services:
       - ${EZARR_ROOT_DIR}/data/media:/data
     ports:
       - "8096:8096"
-    restart: unless-stopped
+    restart: always
 
   # qbittorrent:
   #   image: lscr.io/linuxserver/qbittorrent:latest
@@ -157,7 +157,7 @@ services:
   #     - "8080:8080"
   #     - "6881:6881"
   #     - "6881:6881/udp"
-  #   restart: unless-stopped
+  #   restart: always
 
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:latest
@@ -172,7 +172,7 @@ services:
       - ${EZARR_ROOT_DIR}/data/usenet:/data/usenet
     ports:
       - "8081:8080"
-    restart: unless-stopped
+    restart: always
 
   ntfy:
     image: binwiederhier/ntfy
@@ -188,7 +188,7 @@ services:
       - ${EZARR_ROOT_DIR}/config/ntfy-config:/etc/ntfy
     ports:
       - 8888:80
-    restart: unless-stopped
+    restart: always
 
   postgresql:
     container_name: postgresql
@@ -207,7 +207,7 @@ services:
       - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
       timeout: 5s
     image: docker.io/library/postgres:16-alpine
-    restart: unless-stopped
+    restart: always
     volumes:
     - ${EZARR_ROOT_DIR}/data/authentik-data/database:/var/lib/postgresql/data
 

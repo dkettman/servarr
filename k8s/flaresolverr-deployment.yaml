@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose -f container-compose.yml convert -n servarr
+    kompose.version: 1.37.0 (fb0539e64)
+  labels:
+    io.kompose.service: flaresolverr
+  name: flaresolverr
+  namespace: servarr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: flaresolverr
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f container-compose.yml convert -n servarr
+        kompose.version: 1.37.0 (fb0539e64)
+      labels:
+        io.kompose.service: flaresolverr
+    spec:
+      containers:
+        - env:
+            - name: CAPTCHA_SOLVER
+              value: none
+            - name: LOG_HTML
+              value: "false"
+            - name: LOG_LEVEL
+              value: info
+            - name: TZ
+              value: America/Detroit
+          image: ghcr.io/flaresolverr/flaresolverr:latest
+          name: flaresolverr
+          ports:
+            - containerPort: 8191
+              protocol: TCP
+      restartPolicy: Always
