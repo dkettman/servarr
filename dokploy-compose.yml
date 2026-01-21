@@ -1,0 +1,77 @@
+---
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - sonarr-config:/config
+      - servarr-data:/data
+    ports:
+      - 8989
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - radarr-config:/config
+      - servarr-data:/data
+    ports:
+      - 7878
+    restart: unless-stopped
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - jellyseerr-config:/app/config
+    ports:
+      - 5055
+    restart: unless-stopped
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - jellyfin-config:/config
+      - servarr-data:/data
+    ports:
+      - 8096
+    restart: unless-stopped
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - sabnzbd-config:/config
+      - servarr-data:/data/usenet
+    ports:
+      - 8080
+    restart: unless-stopped
+
+volumes:
+  servarr-data:
+    driver_opts:
+      type: "nfs"
+      o: "addr=192.168.68.60,rw"
+      device: "/media01"
+      
+  sabnzbd-config:
+  jellyfin-config:
+  jellyseerr-config:
+  radarr-config:
+  sonarr-config:
+  
+
+
+
