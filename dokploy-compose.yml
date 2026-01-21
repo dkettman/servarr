@@ -61,10 +61,11 @@ services:
 
 volumes:
   servarr-data:
+    driver: local
     driver_opts:
-      type: "nfs"
-      o: "addr=192.168.68.60,rw"
-      device: "/media01"
+      type: nfs
+      o: addr=192.168.68.60,rw,nolock,soft
+      device: :/media01
       
   sabnzbd-config:
   jellyfin-config:
