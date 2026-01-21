@@ -1,0 +1,32 @@
+[variables]
+main_domain = "${domain}"
+timezone = "America/Detroit"
+
+[config]
+[[config.env]]
+TIMEZONE = "${timezone}"
+
+[[config.domains]]
+serviceName = "sonarr"
+port = 8989
+host = "${domain}"
+
+[[config.domains]]
+serviceName = "radarr"
+port = 7878
+host = "${domain}"
+
+[[config.domains]]
+serviceName = "jellyfin"
+port = 8096
+host = "${domain}"
+
+[[config.domains]]
+serviceName = "jellyseerr"
+port = 5055
+host = "${domain}"
+
+[[config.domains]]
+serviceName = "sabnzbd"
+port = 8080
+host = "${domain}"
