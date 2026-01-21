@@ -2,7 +2,6 @@
 services:
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
-    container_name: sonarr
     environment:
       - TZ=${TIMEZONE}
     volumes:
@@ -14,7 +13,6 @@ services:
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
-    container_name: radarr
     environment:
       - TZ=${TIMEZONE}
     volumes:
@@ -26,7 +24,6 @@ services:
 
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
     environment:
       - TZ=${TIMEZONE}
     volumes:
@@ -37,7 +34,6 @@ services:
 
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
-    container_name: jellyfin
     environment:
       - TZ=${TIMEZONE}
     volumes:
@@ -49,7 +45,6 @@ services:
 
   sabnzbd:
     image: lscr.io/linuxserver/sabnzbd:latest
-    container_name: sabnzbd
     environment:
       - TZ=${TIMEZONE}
     volumes:
